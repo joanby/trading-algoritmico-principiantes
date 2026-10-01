@@ -1,0 +1,10 @@
+# Versiones exactas con las que se ha verificado la rama update-2026.
+# Fijadas a propósito: con versiones sin fijar, el curso se rompió solo cuando cambiaron las librerías.
+hurst==0.0.5
+matplotlib==3.11.2
+MetaTrader5; sys_platform == "win32"  # solo Windows, no verificado
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+ta==0.11.0
+yfinance==1.7.0
