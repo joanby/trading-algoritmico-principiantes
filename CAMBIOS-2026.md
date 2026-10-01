@@ -1,6 +1,6 @@
 # Cambios de la rama `update-2026`
 
-> Esta rama es el mismo curso —Trading Algorítmico para Principiantes—, con el código adaptado a las librerías de hoy
+> Esta rama es el mismo curso —Trading Algorítmico para principiantes: de cero a héroe—, con el código adaptado a las librerías de hoy
 > (matplotlib 3.11.2, pandas 3.0.6, yfinance 1.7.0; octubre de 2026). La rama principal sigue exactamente como en el vídeo.
 
 > **Qué está comprobado y qué no.** Se ha ejecutado cada notebook entero con las versiones de
@@ -31,6 +31,7 @@ yfinance cambió tres comportamientos por defecto de `yf.download` desde que se 
 | En el vídeo | Hoy, si no dices nada | Qué pasa con el código del curso |
 |---|---|---|
 | Sin fechas, descarga **todo el histórico** | Descarga **solo el último mes** | Medias largas vacías, `.loc["2020"]` da `KeyError`, backtests de un mes |
+| Con solo `end="2021-01-01"`, desde el principio hasta esa fecha | **Solo el mes anterior** a esa fecha | El mismo problema, sin ningún error |
 | Columnas `Open, High, Low, Close, Adj Close, Volume` | Sin `Adj Close` (`auto_adjust=True`) | `KeyError: 'Adj Close'` y *Length mismatch* al renombrar |
 | Columnas simples, en ese orden | Dos niveles (precio, ticker) y en **orden alfabético** | Aunque arregles lo anterior, al renombrar por posición `open` acabaría siendo `Adj Close` |
 
@@ -40,7 +41,7 @@ Cada `yf.download(...)` lleva ahora los argumentos que devuelven el comportamien
 yf.download("EURUSD=X", period="max", auto_adjust=False, multi_level_index=False)
 ```
 
-`period="max"` solo se añade cuando la llamada no tenía fechas. Donde el código renombra las columnas por
+`period="max"` se añade siempre que la llamada no tenga fecha de inicio (`start`). Donde el código renombra las columnas por
 posición (`df.columns = ["open", "high", ...]`), antes se reordenan como estaban:
 `[["Open", "High", "Low", "Close", "Adj Close", "Volume"]]`.
 
