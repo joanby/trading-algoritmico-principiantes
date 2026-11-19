@@ -138,3 +138,53 @@ capítulo 7 usa la `preprocessing_yf` de la celda 29, que ya estaba bien). Cambi
   símbolo admite un único modo de ejecución, y si no, la orden puede rechazarse. El bucle no tiene ninguna
   pausa: repite la ronda durante todo el segundo de arranque y luego da vueltas sin parar. Opera
   siempre en una **cuenta demo**, y empieza con `live = False`.
+
+### 4. El stop loss se cobraba también sin posición (capítulo 7)
+
+**En el vídeo:** «si el valor mínimo de ese día baja del stop loss […] cerraríamos la posición actual».
+Se prueban stops del 5 %, el 2,5 %, el 10 % y el 0,3 %, y salen curvas que terminan en un 0 %, un −40 %, un
+20 % y un −400 %. La conclusión es que, con esta estrategia, el stop loss no compensa.
+
+**Qué estaba mal:** `df.loc[df["Min"]<-sl, "return SL"] = -sl` (celda 25) apuntaba la pérdida del stop
+**todos** los días en los que el mínimo bajaba más que `sl`, también aquellos en los que la estrategia no
+tenía posición (casi la mitad del histórico). Y en las ventas usaba el mínimo, cuando lo que hace perder a
+una venta es que el precio suba. Las curvas del vídeo salen casi enteras de ahí.
+
+**Ahora:** la celda 21 calcula también `df["Max"]`, la subida máxima del día respecto al cierre anterior, y
+el stop salta solo con posición abierta: en compras, con el mínimo; en ventas, con el máximo.
+
+```python
+df["Max"] = (df["high"] - df["close"].shift(1)) / df["close"].shift(1)       # celda 21
+df.loc[(df["Min"]<-sl) & (df["position"].shift(1)==1), "return SL"] = -sl    # celda 25
+df.loc[(df["Max"]>sl) & (df["position"].shift(1)==-1), "return SL"] = -sl
+```
+
+**Qué cambia en los números** (suma de los retornos diarios, `EURUSD=X`; train hasta 2015 y test desde
+2015, como en las celdas 26 y 27):
+
+| stop | train antes | train ahora | test antes | test ahora |
+|---|---|---|---|---|
+| sin stop | 64,7 % | 64,7 % | 3,8 % | 3,8 % |
+| 10 % | 31,2 % | 64,7 % | 3,8 % | 3,8 % |
+| 5 % (el de la celda) | 6,1 % | **70,2 %** | 3,8 % | 3,8 % |
+| 2,5 % | −40,8 % | 62,3 % | −32,8 % | −3,2 % |
+| 0,3 % | −462,6 % | 134,1 % | −472,2 % | 25,3 % |
+
+Con el código antiguo y los datos de hoy salen las mismas curvas que en el vídeo (≈ 0 %, −40 %, −400 %).
+Corregido, un stop amplio casi no cambia nada, que es lo esperable. Los stops muy cortos se comportan de
+forma extraña (el del 0,3 % gana más que sin stop), porque el modelo es tosco: da por hecho que el stop se
+ejecuta justo a `-sl` y no sabe si ese día se tocó antes el mínimo o el máximo. No lo tomes como una
+estrategia.
+
+Sin tocar: `dfh.loc[df["Min"]<-0.3] = 0` (celda 22) se aplica después de ordenar, así que el único valor
+atípico de 2005–2015 (27-1-2012, con un mínimo de 0,76) pasa a valer 0 pero se queda el primero. En la zona
+que se dibuja (de −3,5 % a 0) no se nota.
+
+## Erratas del vídeo (el código no cambia)
+
+- **Stop loss (capítulo 7).** Las mayores pérdidas de 2005–2015 (las del 6 %, el 9 % y el 14 %) se
+  atribuyen a la crisis de 2008. Son errores de los datos de Yahoo: en cinco días de 2008, `EURUSD=X` sube entre un 5 % y
+  un 17 % de un cierre al siguiente y lo deshace al día siguiente (el 8-12-2008 cierra a 1,49 y abre el 9 a
+  1,29), y el euro nunca se ha movido tanto en una sesión. Es el mismo tipo de dato «que alguien ha puesto mal» que la celda 22 descarta por debajo del −30 %.
+  Y la conclusión de que el stop loss «no sale a cuenta» depende del fallo del punto 4: corregido, el del 5 %
+  queda por encima de no ponerlo en train y empata en test.
