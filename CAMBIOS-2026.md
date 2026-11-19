@@ -70,6 +70,26 @@ Notebooks: `ES_TA_Capítulo_01_Los_fundamentos_de_Python`, `ES_TA_Capítulo_09_M
 
 Algunas celdas dan un error a propósito para explicar algo (por ejemplo, qué es una variable local). Siguen dándolo; solo se han marcado (`raises-exception`) para que *Ejecutar todo* no se pare ahí.
 
+### 5. pandas 3: `pct_change` ya no rellena los huecos (añadido en noviembre de 2026)
+
+Notebook: `ES_TA_Capítulo_03_Estadística_Descriptiva` (celdas 23 y 34). No da ningún error, por eso no se vio en
+octubre.
+
+Se descargan varios activos juntos y cada uno cotiza en días distintos (la bolsa de EE. UU. cierra en sus
+festivos y los fines de semana; BTC cotiza todos los días), así que la tabla tiene huecos. Hasta pandas 2.1,
+`pct_change` los rellenaba con el último precio antes de calcular; en pandas 3 ya no, y el `dropna()` de
+detrás tira en silencio todas las filas con algún hueco. Con BTC desaparecen los fines de semana **y todos los
+lunes**. Ahora es `["Adj Close"].ffill().pct_change(1).dropna()`, que hace exactamente lo de entonces.
+
+| (Yahoo real, 19-11-2026) | pandas 3 sin `ffill` | Ahora (= vídeo) |
+|---|---|---|
+| Celda 23 (GOOG, EURUSD, MSFT, AMZN, TSLA): filas | 3.964 | 4.273 |
+| Celda 34 (con BTC-USD): filas | 2.389 | 4.446 |
+| Celda 35: correlación GOOG–MSFT / BTC–MSFT | 0,607 / 0,207 | 0,632 / 0,181 |
+
+**Si escribes el código siguiendo el vídeo**, añade `.ffill()` antes de `.pct_change(1)` cuando descargues
+varios activos a la vez.
+
 ## Correcciones de errores del curso (noviembre de 2026)
 
 Aquí no ha cambiado ninguna librería: son fallos del código del curso que enseñaban algo mal. **Lo que
